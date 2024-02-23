@@ -1,0 +1,78 @@
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+library(lmtest)
+```
+
+```{r}
+air = airquality
+```
+
+```{r}
+str(air)
+```
+```{r}
+air2 = air %>% drop_na()
+```
+
+```{r}
+ggpairs(air2)
+```
+```{r}
+ggcorr(air2,label="TRUE")
+```
+```{r}
+ggplot(air2, aes(x=Temp,y=Ozone)) + geom_point() + 
+  geom_smooth(method="lm",se=FALSE, color="red") + theme_bw()
+```
+```{r}
+#reusing code from before (just changing names where needed)
+air2_simple = recipe(Ozone ~ Temp, air2)
+
+lm_model = #give the model type a name 
+  linear_reg() %>% #specify that we are doing linear regression
+  set_engine("lm") #specify the specify type of linear tool we want to use 
+
+lm_wflow = 
+  workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(air2_simple)
+
+lm_fit = fit(lm_wflow, air2)
+```
+```{r}
+summary(lm_fit$fit$fit$fit)
+```
+```{r}
+confint(lm_fit$fit$fit$fit)
+```
+
+```{r}
+testdata = data.frame(Temp = c(80))
+predict(lm_fit, new_data = testdata)
+```
+**Assumption 1:** The predictor and response variable have a linear relationship  
+As noted above, it seems "reasonable" to say that there is something of a linear relationship between these two variables, but there is definitely a nonlinear effect present.  
+
+**Assumption 2:** Model errors (residuals) are independent  
+Let's use the Durbin-Watson Test to examine independence of residuals. The dwtest function is from the lmtest package.  
+```{r}
+dwtest(lm_fit$fit$fit$fit)
+```
+We fail to reject the null hypothesis with a p-value greater than 0.05. This suggests that the residuals are likely independent.  
+
+**Assumption 3:** Model residuals exhibit constant variance  
+Examine a plot of residuals.  
+```{r}
+air2 = air2 %>% mutate(resid1 = lm_fit$fit$fit$fit$residuals) #add the model residuals to our data frame
+ggplot(air2,aes(x=Temp,y=resid1)) + geom_point() + theme_bw()
+```
+A non-linear effect is present.
+
+**Assumption 4:** Model residuals are Normally-distributed  
+Examine a histogram of the residuals.  
+```{r}
+ggplot(air2,aes(x=resid1)) + geom_histogram() + theme_bw()
+```
+

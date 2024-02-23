@@ -1,0 +1,59 @@
+```{r load packages}
+library(tidyverse)
+library(esquisse)
+```
+
+```{r question 1}
+diamonddata = diamonds
+nrow(diamonddata)
+```
+
+```{r question 2}
+str(diamonddata)
+```
+```{r question 3}
+ggplot(diamonddata) +
+ aes(x = carat, y = price) +
+ geom_point(shape = "circle", size = 1.5, colour = "#112446") +
+ theme_minimal()
+```
+
+```{r question 4}
+ggplot(diamonddata) +
+ aes(x = carat, y = price, colour = cut) +
+ geom_point(shape = "circle", size = 1.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal()
+
+
+```
+
+```{r question 5}
+ggplot(diamonddata) +
+ aes(x = carat, y = price, colour = cut) +
+ geom_point(shape = "circle", size = 1.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(color))
+
+```
+
+```{r questions 6 and 7, message=FALSE}
+inventory <- read_csv("InventoryData.csv")
+summary(inventory)
+```
+
+```{r question 8}
+inventoryA <- inventory %>% filter(Supplier == "A")
+summary(inventoryA)
+```
+
+```{r question 9}
+inventoryA = mutate(inventoryA, OnHandRatio = `On Hand` / `Annual Demand`)
+```
+
+```{r question 10}
+avg_cost <- inventoryA %>% group_by(`Item SKU`) %>% summarise(SKUAvgCost = mean(`Cost per Unit ($)`))
+avg_cost %>% filter(`Item SKU` == "011")
+```
+

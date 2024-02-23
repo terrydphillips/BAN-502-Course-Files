@@ -1,0 +1,54 @@
+```{r}
+library(tidyverse)
+library(VIM)
+library(mice)
+```
+
+```{r}
+class_grades <- read_csv("class-grades.csv")
+```
+Structure and summary
+```{r}
+str(class_grades)
+summary(class_grades)
+skimr::skim(class_grades)
+```
+
+Looking at missingness by variable and combinations of missingness using "aggr" from VIM package.  
+```{r}
+vim_plot = aggr(class_grades, numbers = TRUE, prop = c(TRUE, FALSE),cex.axis=.7)
+#the cex.axis reduces size of text on x-axis so labels fit better
+```
+
+```{r}
+class_grades_rowdel = class_grades %>% drop_na() 
+```
+
+```{r}
+class_grades_coldel = class_grades %>% select(-Tutorial) %>%
+  select(-Midterm) %>% select(-TakeHome) %>% select(-Final)
+```
+
+```{r}
+set.seed(123) #sets seed for random number generator
+imp_class_grades = mice(class_grades, m=5, method='pmm', printFlag=FALSE)
+#m is the number of imputations, 5 is a reasonable value as a default
+#pmm is "predictive mean matching" = imputation method for numeric data
+#printFlag reduces amount of output
+summary(imp_class_grades)
+```
+```{r}
+densityplot(imp_class_grades, ~Tutorial | .imp) #red imputed, blue original
+densityplot(imp_class_grades, ~Midterm) #red imputed, blue original
+densityplot(imp_class_grades, ~TakeHome) #red imputed, blue original
+densityplot(imp_class_grades, ~Final) #red imputed, blue original
+```
+
+```{r}
+class_grades_complete = complete(imp_class_grades) 
+summary(class_grades_complete)
+```
+```{r}
+summary(class_grades)
+```
+
